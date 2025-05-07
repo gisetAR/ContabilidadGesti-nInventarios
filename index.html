@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Inventarios</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1A237E",
+                        secondary: "#F5F5F5",
+                        dark: {
+                            primary: "#2196F3",
+                            secondary: "#1E1E1E",
+                            bg: "#121212",
+                            card: "#1E1E1E",
+                            text: "#E0E0E0",
+                        },
+                    },
+                    borderRadius: {
+                        none: "0px",
+                        sm: "4px",
+                        DEFAULT: "8px",
+                        md: "12px",
+                        lg: "16px",
+                        xl: "20px",
+                        "2xl": "24px",
+                        "3xl": "32px",
+                        full: "9999px",
+                        button: "8px",
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" />
+    <style>
+        :where([class^="ri-"])::before {
+            content: "\f3c2";
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .dark body {
+            color-scheme: dark;
+        }
+
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            color: #9d9d9d;
+            ;
+        }
+
+        .dark .text-gray-700 {
+            color: #E0E0E0;
+        }
+
+        .dark .text-gray-600 {
+            color: #BDBDBD;
+        }
+
+        .dark .text-gray-500 {
+            color: #9E9E9E;
+        }
+
+        .dark .text-gray-800 {
+            color: #9d9d9d;
+        }
+
+        .dark .bg-white {
+            background-color: #1E1E1E;
+        }
+
+        .dark .bg-gray-100 {
+            background-color: #2D2D2D;
+        }
+
+        .dark .card-hover {
+            background-color: #1E1E1E;
+            border: 1px solid #333;
+        }
+
+        .dark .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .scroll-to-top {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .scroll-to-top.show {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-dark-bg transition-colors duration-300">
+    <!-- Header -->
+    <header class="w-full bg-white dark:bg-dark-card shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <h1 class="text-2xl font-['Pacifico'] text-primary">logo</h1>
+            </div>
+
+            <!-- Menú de navegación desktop -->
+            <nav class="hidden md:flex space-x-6">
+                <a href="#inicio" class="text-gray-700 hover:text-primary font-medium transition-colors">Inicio</a>
+                <a href="#preguntas"
+                    class="text-gray-700 hover:text-primary font-medium transition-colors">Preguntas</a>
+                <a href="#bibliografia"
+                    class="text-gray-700 hover:text-primary font-medium transition-colors">Bibliografía</a>
+                <a href="#participantes"
+                    class="text-gray-700 hover:text-primary font-medium transition-colors">Participantes</a>
+            </nav>
+
+            <!-- Botones (tema + menú mobile) -->
+            <div class="flex items-center space-x-2">
+                <!-- Botón cambio de tema -->
+                <button id="theme-toggle"
+                    class="w-10 h-10 flex items-center justify-center text-gray-700 dark:text-gray-300">
+                    <i class="ri-sun-line dark:hidden"></i>
+                    <i class="ri-moon-line hidden dark:block"></i>
+                </button>
+
+                <!-- Botón menú mobile -->
+                <button id="menu-toggle" class="w-10 h-10 flex items-center justify-center text-gray-700 md:hidden">
+                    <i class="ri-menu-line ri-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menú mobile -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white w-full border-t">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#inicio" class="text-gray-700 py-2 hover:text-primary font-medium transition-colors">Inicio</a>
+                <a href="#preguntas"
+                    class="text-gray-700 py-2 hover:text-primary font-medium transition-colors">Preguntas</a>
+                <a href="#bibliografia"
+                    class="text-gray-700 py-2 hover:text-primary font-medium transition-colors">Bibliografía</a>
+                <a href="#participantes"
+                    class="text-gray-700 py-2 hover:text-primary font-medium transition-colors">Participantes</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="w-full bg-primary text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary to-transparent z-10"></div>
+        <div class="absolute inset-0"
+            style="background-image: url('https://readdy.ai/api/search-image?query=modern%20warehouse%20with%20inventory%20management%20system%2C%20blue%20tones%2C%20professional%20environment%2C%20organized%20shelves%20with%20products%2C%20workers%20using%20digital%20tablets%20for%20inventory%20tracking%2C%20clean%20and%20modern%20facility&width=1600&height=800&seq=123&orientation=landscape'); background-size: cover; background-position: center; opacity: 0.8;">
+        </div>
+        <div class="container mx-auto px-4 py-16 md:py-24 relative z-20">
+            <div class="max-w-2xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                    Gestión de Inventarios
+                </h1>
+                <p class="text-xl mb-8">
+                    Descubre los conceptos fundamentales, estrategias y métodos para una
+                    gestión eficiente de inventarios en las organizaciones modernas.
+                </p>
+                <!-- Search Bar -->
+                <div class="w-full max-w-xl bg-white rounded-button shadow-lg flex items-center p-1">
+                    <input type="text" placeholder="Buscar tema..."
+                        class="search-input w-full px-4 py-3 text-gray-700 border-none rounded-l-button" />
+                    <button
+                        class="bg-primary text-white px-4 py-3 rounded-r-button !rounded-button whitespace-nowrap flex items-center">
+                        <i class="ri-search-line mr-2"></i>
+                        Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumbs -->
+    <div class="container mx-auto px-4 py-3 flex items-center text-sm text-gray-500">
+        <a href="#inicio" class="hover:text-primary">Inicio</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-700">Preguntas</span>
+    </div>
+    <!-- Main Content - Questions -->
+    <section id="preguntas" class="container mx-auto px-4 py-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">
+            Preguntas Fundamentales
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Question 1 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20warehouse%20management%20system%20with%20digital%20inventory%20tracking%2C%20professional%20business%20environment%2C%20clean%20and%20organized%20shelves%20with%20products%2C%20soft%20lighting%2C%20blue%20tones&width=600&height=400&seq=1&orientation=landscape"
+                        alt="Inventory Management" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">01</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        ¿Por qué los inventarios son una fuente de financiamiento?
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Los inventarios representan capital inmovilizado que puede
+                        convertirse en efectivo. Una gestión eficiente permite liberar
+                        recursos financieros...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="1">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 2 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=raw%20materials%20storage%20area%20in%20modern%20factory%2C%20industrial%20setting%2C%20organized%20shelves%20with%20various%20materials%2C%20clean%20environment%2C%20professional%20lighting&width=600&height=400&seq=2&orientation=landscape"
+                        alt="Raw Materials" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">02</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario de materias primas
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Comprende todos los materiales que se utilizan directamente en el
+                        proceso productivo y que aún no han sido procesados. Su adecuada
+                        gestión...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="2">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 3 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=manufacturing%20process%20in%20modern%20factory%2C%20workers%20assembling%20products%2C%20production%20line%20with%20partially%20completed%20items%2C%20industrial%20setting%2C%20professional%20environment&width=600&height=400&seq=3&orientation=landscape"
+                        alt="Work in Progress" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">03</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario de productos en proceso
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Son aquellos materiales que han iniciado su transformación pero
+                        aún no son productos terminados. Representan un estado
+                        intermedio...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="3">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 4 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=finished%20products%20warehouse%2C%20modern%20storage%20facility%20with%20completed%20products%20on%20shelves%2C%20organized%20inventory%2C%20clean%20industrial%20environment%2C%20professional%20lighting&width=600&height=400&seq=4&orientation=landscape"
+                        alt="Finished Products" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">04</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario de productos terminados
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Constituido por los artículos que han completado su proceso de
+                        fabricación y están listos para su venta. Estos productos
+                        representan...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="4">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 5 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20retail%20store%20interior%20with%20organized%20shelves%20of%20merchandise%2C%20clean%20and%20professional%20retail%20environment%2C%20well-lit%20commercial%20space%20with%20products%20on%20display&width=600&height=400&seq=5&orientation=landscape"
+                        alt="Merchandise Inventory" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">05</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario de mercancías
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Son los bienes que la empresa adquiere para revender sin
+                        someterlos a transformación. Común en empresas comerciales, su
+                        rotación...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="5">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 6 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20warehouse%20with%20safety%20stock%20storage%20area%2C%20organized%20backup%20inventory%2C%20industrial%20storage%20facility%20with%20labeled%20sections%2C%20professional%20inventory%20management&width=600&height=400&seq=6&orientation=landscape"
+                        alt="Safety Stock" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">06</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario de reserva
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        También conocido como inventario de seguridad, se mantiene para
+                        proteger contra incertidumbres en la demanda o suministro. Actúa
+                        como...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="6">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 7 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20manufacturing%20facility%20with%20buffer%20inventory%20between%20production%20stages%2C%20industrial%20setting%20with%20automated%20machinery%20and%20organized%20storage%20areas%2C%20professional%20lighting&width=600&height=400&seq=7&orientation=landscape"
+                        alt="Decoupling Inventory" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">07</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario de desacoplamiento
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Permite que diferentes partes del proceso productivo operen de
+                        manera independiente. Su función es evitar interrupciones cuando
+                        hay variaciones en los tiempos de procesamiento.
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="7">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 8 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=logistics%20and%20transportation%20of%20goods%2C%20cargo%20containers%20on%20trucks%20and%20ships%2C%20modern%20supply%20chain%20management%2C%20professional%20shipping%20operations&width=600&height=400&seq=8&orientation=landscape"
+                        alt="Transit Inventory" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">08</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventario en tránsito
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Constituido por materiales que han sido enviados por el proveedor
+                        pero aún no se han recibido. Representan un compromiso de capital
+                        durante el transporte.
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="8">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 9 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20warehouse%20with%20digital%20inventory%20tracking%20system%2C%20workers%20performing%20cycle%20counting%20with%20tablets%2C%20organized%20shelves%20with%20barcodes%2C%20professional%20inventory%20management&width=600&height=400&seq=9&orientation=landscape"
+                        alt="Cycle Counting" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">09</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Inventarios cíclicos
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Sistema de conteo continuo donde se verifica un grupo de artículos
+                        en intervalos regulares. Permite mantener la precisión del
+                        inventario sin...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="9">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 10 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20inventory%20control%20room%20with%20security%20monitors%2C%20access%20control%20systems%2C%20professional%20staff%20monitoring%20inventory%20systems%2C%20secure%20warehouse%20environment&width=600&height=400&seq=10&orientation=landscape"
+                        alt="Internal Control" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">10</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Control interno sobre los inventarios
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Conjunto de procedimientos y políticas que aseguran la exactitud
+                        de los registros y la protección física de los inventarios. Su
+                        importancia radica en...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="10">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 11 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20office%20with%20professional%20accountant%20analyzing%20inventory%20methods%20on%20computer%20screens%2C%20financial%20charts%20and%20graphs%2C%20organized%20workspace%20with%20digital%20tools&width=600&height=400&seq=11&orientation=landscape"
+                        alt="Inventory Methods" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">11</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Métodos de inventario
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Existen diversos métodos como PEPS, UEPS y Promedio Ponderado,
+                        cada uno con diferentes impactos en la valoración del inventario y
+                        en los resultados...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="11">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 12 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20warehouse%20management%20system%20with%20digital%20inventory%20tracking%2C%20showing%20maximum%20and%20minimum%20stock%20levels%2C%20organized%20shelves%20with%20clear%20labeling%2C%20professional%20environment&width=600&height=400&seq=12&orientation=landscape"
+                        alt="Inventory Max Min" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">12</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Máximos y mínimos en inventarios
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Sistema que establece niveles óptimos de existencias para evitar
+                        excesos o faltantes. El nivel mínimo protege contra
+                        desabastecimiento mientras que...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="12">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 13 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20business%20analysis%20with%20break-even%20point%20charts%20and%20graphs%20on%20digital%20screens%2C%20professional%20office%20environment%2C%20financial%20data%20visualization&width=600&height=400&seq=13&orientation=landscape"
+                        alt="Break Even Point" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">13</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Punto de equilibrio
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Nivel de ventas donde los ingresos totales igualan a los costos
+                        totales, resultando en beneficio cero. Es crucial para determinar
+                        el volumen mínimo...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="13">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Question 14 -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden card-hover transform transition-transform duration-300 hover:scale-[1.02]">
+                <div class="h-48 overflow-hidden">
+                    <img src="https://readdy.ai/api/search-image?query=modern%20warehouse%20returns%20processing%20area%2C%20workers%20handling%20returned%20inventory%2C%20organized%20shelving%20system%2C%20professional%20logistics%20environment&width=600&height=400&seq=14&orientation=landscape"
+                        alt="Inventory Returns" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-4 py-1.5 rounded-full">14</span>
+                        <span class="text-gray-500"><i class="ri-arrow-right-line"></i></span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Devolución de inventarios
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Proceso mediante el cual se retornan mercancías a proveedores o se
+                        reciben de clientes. Requiere procedimientos específicos para su
+                        registro...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="14">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pregunta 15: Kardex -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="h-48 overflow-hidden">
+                    <img src="./imgs/9645fb_c6ae217902fb4ba08276f03045eb8226~mv2.jpg" alt="Sistema Kardex"
+                        class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-3 py-1 rounded-full">15</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Kardex</h3>
+                    <p class="text-gray-600 mb-4">
+                        Sistema de registro que controla de forma organizada las entradas y salidas de mercancías.
+                        Permite conocer en cualquier momento las existencias...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="15">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pregunta 16: Inventario en empresas de servicios -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="h-48 overflow-hidden">
+                    <img src="./imgs/Manejo-de-inventarios-en-empresas-de-servicios-3-min.png"
+                        alt="Inventario en empresas de servicios" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-3 py-1 rounded-full">16</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Inventario en empresas de servicios</h3>
+                    <p class="text-gray-600 mb-4">
+                        Aunque no comercializan productos físicos, las empresas de servicios también gestionan
+                        inventarios de suministros y materiales necesarios para...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="16">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pregunta 17: Costear un inventario -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="h-48 overflow-hidden">
+                    <img src="./imgs/9645fb_c6ae217902fb4ba08276f03045eb8226~mv2.jpg" alt="Costeo de inventario"
+                        class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-3 py-1 rounded-full">17</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Costear un inventario</h3>
+                    <p class="text-gray-600 mb-4">
+                        Proceso de asignar valor monetario a las existencias. Incluye no solo el precio de compra sino
+                        también otros costos asociados como transporte...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="17">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pregunta 18: Determinación del precio de venta -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="h-48 overflow-hidden">
+                    <img src="./imgs/maxresdefault.jpg" alt="Estrategia de precios"
+                        class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-3 py-1 rounded-full">18</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Determinación del precio de venta</h3>
+                    <p class="text-gray-600 mb-4">
+                        Proceso estratégico que considera costos, competencia y valor percibido. Existen diversos
+                        métodos como costo más margen, valor percibido...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="18">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pregunta 19: Qué no se debe inventariar -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="h-48 overflow-hidden">
+                    <img src="./imgs/Manejo-de-inventarios-en-empresas-de-servicios-3-min.png"
+                        alt="Elementos no inventariables" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-3 py-1 rounded-full">19</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Qué no se debe inventariar</h3>
+                    <p class="text-gray-600 mb-4">
+                        Existen elementos que no deben incluirse en el inventario como activos fijos, materiales de
+                        oficina de bajo valor, productos obsoletos o...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="19">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pregunta 20: Merma en el sistema de inventarios -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="h-48 overflow-hidden">
+                    <img src="./imgs/ficha-kardex-inventarios-digital-7834f909.png" alt="Merma en inventarios"
+                        class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-primary text-white text-sm font-medium px-3 py-1 rounded-full">20</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Merma en el sistema de inventarios</h3>
+                    <p class="text-gray-600 mb-4">
+                        Pérdida o reducción de mercancías que produce una diferencia entre el inventario contable y el
+                        físico. Puede deberse a causas naturales...
+                    </p>
+                    <button class="text-primary font-medium flex items-center !rounded-button whitespace-nowrap"
+                        data-question="20">
+                        Leer más
+                        <i class="ri-arrow-right-line ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Modal for detailed question view -->
+    <div id="question-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modal-title" class="text-2xl font-bold text-gray-800"></h2>
+                    <button id="close-modal"
+                        class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700">
+                        <i class="ri-close-line ri-lg"></i>
+                    </button>
+                </div>
+                <div id="modal-content" class="prose max-w-none">
+                    <!-- Content will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bibliography Section -->
+    <section id="bibliografia" class="bg-secondary py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-center mb-10">
+                <div class="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full mr-3">
+                    <i class="ri-book-open-line"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800">Bibliografía</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">Libros</h3>
+                    <ul class="space-y-4">
+                        <li class="flex">
+                            <div
+                                class="w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full mr-3 flex-shrink-0 mt-1">
+                                <i class="ri-book-line ri-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Muller, M. (2019)</p>
+                                <p class="text-gray-600">
+                                    Fundamentos de administración de inventarios. Grupo
+                                    Editorial Norma.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="flex">
+                            <div
+                                class="w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full mr-3 flex-shrink-0 mt-1">
+                                <i class="ri-book-line ri-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Suárez, M. L. (2021)</p>
+                                <p class="text-gray-600">
+                                    Gestión de inventarios: Una nueva mirada. McGraw-Hill
+                                    Interamericana.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="flex">
+                            <div
+                                class="w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full mr-3 flex-shrink-0 mt-1">
+                                <i class="ri-book-line ri-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">
+                                    Chase, R. B., Jacobs, F. R., & Aquilano, N. J. (2022)
+                                </p>
+                                <p class="text-gray-600">
+                                    Administración de operaciones: Producción y cadena de
+                                    suministros. McGraw-Hill.
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <h3 class="text-xl font-semibold mb-3 text-gray-800">
+                        Artículos y Recursos en Línea
+                    </h3>
+                    <ul class="space-y-4">
+                        <li class="flex">
+                            <div
+                                class="w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full mr-3 flex-shrink-0 mt-1">
+                                <i class="ri-article-line ri-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">
+                                    Revista Logística y Transporte (2023)
+                                </p>
+                                <p class="text-gray-600">
+                                    Tendencias en la gestión de inventarios para 2023. Vol. 45,
+                                    pp. 78-92.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="flex">
+                            <div
+                                class="w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full mr-3 flex-shrink-0 mt-1">
+                                <i class="ri-article-line ri-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">
+                                    Instituto Mexicano de Contadores Públicos (2022)
+                                </p>
+                                <p class="text-gray-600">
+                                    Normas de Información Financiera: Inventarios y Costo de
+                                    Ventas.
+                                </p>
+                            </div>
+                        </li>
+                        <li class="flex">
+                            <div
+                                class="w-6 h-6 flex items-center justify-center bg-primary text-white rounded-full mr-3 flex-shrink-0 mt-1">
+                                <i class="ri-global-line ri-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">
+                                    Consejo de Normas Internacionales de Contabilidad
+                                </p>
+                                <p class="text-gray-600">
+                                    NIC 2: Inventarios.
+                                    <a href="#" class="text-primary hover:underline">www.ifrs.org</a>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Participants Section -->
+    <section id="participantes" class="container mx-auto px-4 py-16">
+        <div class="flex items-center justify-center mb-10">
+            <div class="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full mr-3">
+                <i class="ri-team-line"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800">Participantes</h2>
+        </div>
+        <div class="flex flex-wrap justify-center gap-6">
+            <!-- Participant 1 -->
+            <div class="bg-white rounded-lg overflow-hidden card-hover" style="box-shadow: -14px 12px 31px -11px rgba(0,0,0,0.76);
+-webkit-box-shadow: -14px 12px 31px -11px rgba(0,0,0,0.76);
+-moz-box-shadow: -14px 12px 31px -11px rgba(0,0,0,0.76);">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full overflow-hidden mb-4 bg-gray-200">
+                        <img src="./imgs/GisetArenasRojas.jpg" alt="Carlos Rodríguez"
+                            class="w-full h-full object-cover" />
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Giset Arenas Rojas</h3>
+                    <p class="text-gray-600 mb-3">Creación e investigación de la pagina web</p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-linkedin-fill"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-mail-line"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Participant 2 -->
+            <!-- <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full overflow-hidden mb-4 bg-gray-200">
+                        <img src="https://readdy.ai/api/search-image?query=professional%20headshot%20of%20a%20latina%20woman%20with%20medium%20length%20dark%20hair%2C%20business%20casual%20attire%2C%20neutral%20background%2C%20professional%20portrait&width=200&height=200&seq=2&orientation=squarish"
+                            alt="Ana María Gómez" class="w-full h-full object-cover" />
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Ana María Gómez</h3>
+                    <p class="text-gray-600 mb-3">Analista de Datos</p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-linkedin-fill"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-mail-line"></i>
+                        </a>
+                    </div>
+                </div>
+            </div> -->
+            <!-- Participant 3 (commented out) -->
+            <!-- <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full overflow-hidden mb-4 bg-gray-200">
+                        <img src="https://readdy.ai/api/search-image?query=professional%20headshot%20of%20a%20young%20latino%20man%20with%20glasses%2C%20business%20casual%20attire%2C%20neutral%20background%2C%20professional%20portrait&width=200&height=200&seq=3&orientation=squarish"
+                            alt="Javier Martínez" class="w-full h-full object-cover" />
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Javier Martínez</h3>
+                    <p class="text-gray-600 mb-3">Especialista en Logística</p>
+                    <div class="flex space-x-3 justify-center">
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-linkedin-fill"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-mail-line"></i>
+                        </a>
+                    </div>
+                </div>
+            </div> -->
+            <!-- Participant 4 (commented out) -->
+            <!-- <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full overflow-hidden mb-4 bg-gray-200">
+                        <img src="https://readdy.ai/api/search-image?query=professional%20headshot%20of%20a%20latina%20woman%20with%20long%20dark%20hair%2C%20business%20attire%2C%20neutral%20background%2C%20professional%20portrait&width=200&height=200&seq=4&orientation=squarish"
+                            alt="Lucía Hernández" class="w-full h-full object-cover" />
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">Lucía Hernández</h3>
+                    <p class="text-gray-600 mb-3">Contadora Financiera</p>
+                    <div class="flex space-x-3 justify-center">
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-linkedin-fill"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary">
+                            <i class="ri-mail-line"></i>
+                        </a>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white py-10">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Gestión de Inventarios</h3>
+                    <p class="text-gray-300">
+                        Proyecto académico sobre conceptos fundamentales de la gestión de
+                        inventarios y su importancia en las organizaciones modernas.
+                        Ficha: 2972701
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#inicio" class="text-gray-300 hover:text-white transition-colors">Inicio</a>
+                        </li>
+                        <li>
+                            <a href="#preguntas" class="text-gray-300 hover:text-white transition-colors">Preguntas</a>
+                        </li>
+                        <li>
+                            <a href="#bibliografia"
+                                class="text-gray-300 hover:text-white transition-colors">Bibliografía</a>
+                        </li>
+                        <li>
+                            <a href="#participantes"
+                                class="text-gray-300 hover:text-white transition-colors">Participantes</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm text-gray-300 mb-4 md:mb-0">
+                    © 2025 Gestión de Inventarios. Ficha: 2972701.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="w-8 h-8 flex items-center justify-center text-white hover:text-gray-300">
+                        <i class="ri-facebook-fill"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 flex items-center justify-center text-white hover:text-gray-300">
+                        <i class="ri-twitter-x-fill"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 flex items-center justify-center text-white hover:text-gray-300">
+                        <i class="ri-linkedin-fill"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 flex items-center justify-center text-white hover:text-gray-300">
+                        <i class="ri-instagram-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Scroll to top button -->
+    <button id="scroll-to-top"
+        class="scroll-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg items-center justify-center opacity-80 hover:opacity-100">
+        <i class="ri-arrow-up-line ri-lg"></i>
+    </button>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Theme toggle functionality
+            const themeToggle = document.getElementById("theme-toggle");
+            const html = document.documentElement;
+            // Check for saved theme preference, default to light
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                html.classList.add("dark");
+            }
+            // Theme toggle handler
+            themeToggle.addEventListener("click", function () {
+                html.classList.toggle("dark");
+                // Save theme preference
+                localStorage.setItem(
+                    "theme",
+                    html.classList.contains("dark") ? "dark" : "light",
+                );
+            });
+            // Mobile menu toggle
+            const menuToggle = document.getElementById("menu-toggle");
+            const mobileMenu = document.getElementById("mobile-menu");
+            menuToggle.addEventListener("click", function () {
+                mobileMenu.classList.toggle("hidden");
+            });
+            // Scroll to top button
+            const scrollToTopButton = document.getElementById("scroll-to-top");
+            window.addEventListener("scroll", function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopButton.classList.add("show");
+                } else {
+                    scrollToTopButton.classList.remove("show");
+                }
+            });
+            scrollToTopButton.addEventListener("click", function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                });
+            });
+            // Modal functionality
+            const modal = document.getElementById("question-modal");
+            const modalTitle = document.getElementById("modal-title");
+            const modalContent = document.getElementById("modal-content");
+            const closeModal = document.getElementById("close-modal");
+            // Question content data
+            const questionData = {
+                1: {
+                    title: "¿Por qué los inventarios son una fuente de financiamiento?",
+                    content: `
+      <p>Los inventarios representan una importante fuente de financiamiento para las organizaciones por varias razones:</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Capital Convertible</h3>
+      <p>Los inventarios constituyen capital inmovilizado que puede convertirse en efectivo cuando se venden. Una gestión eficiente del inventario permite liberar recursos financieros que pueden utilizarse para otras necesidades operativas o de inversión.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Garantía para Préstamos</h3>
+      <p>Las existencias pueden servir como garantía para obtener préstamos bancarios o líneas de crédito. Muchas instituciones financieras aceptan el inventario como colateral, especialmente cuando se trata de mercancías de alta liquidez.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Optimización del Flujo de Caja</h3>
+      <p>Una rotación adecuada del inventario mejora el ciclo de conversión de efectivo. Al reducir el tiempo que el capital permanece inmovilizado en forma de inventario, se mejora la liquidez y se disminuye la necesidad de financiamiento externo.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Economías de Escala</h3>
+      <p>Mantener niveles óptimos de inventario permite aprovechar descuentos por volumen y reducir costos unitarios, lo que se traduce en mayores márgenes de ganancia y, por ende, en una mayor generación interna de fondos.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Protección contra Inflación</h3>
+      <p>En economías con tendencias inflacionarias, el inventario puede representar una protección contra el aumento de precios, conservando valor que posteriormente puede convertirse en mayores ingresos.</p>
+      <p class="mt-4">Sin embargo, es fundamental encontrar un equilibrio, ya que un exceso de inventario también puede representar costos adicionales de almacenamiento, obsolescencia y oportunidad del capital inmovilizado.</p>
+      `,
+                },
+                2: {
+                    title: "Inventario de materias primas",
+                    content: `
+      <p>El inventario de materias primas comprende todos los materiales que se utilizan directamente en el proceso productivo y que aún no han sido sometidos a ningún tipo de procesamiento en la empresa.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Características principales</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Son los insumos básicos que se transformarán en productos en proceso y posteriormente en productos terminados.</li>
+      <li>Representan el punto de partida de la cadena productiva dentro de la organización.</li>
+      <li>Su valoración suele incluir el precio de compra, aranceles, transporte y otros costos directamente atribuibles a su adquisición.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Importancia estratégica</h3>
+      <p>Una gestión eficiente del inventario de materias primas es crucial por varias razones:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Continuidad operativa:</strong> Garantiza que la producción no se detenga por falta de insumos.</li>
+      <li><strong>Control de costos:</strong> Permite monitorear las variaciones en los precios de los insumos y su impacto en los costos totales.</li>
+      <li><strong>Calidad del producto final:</strong> La calidad de las materias primas influye directamente en la calidad del producto terminado.</li>
+      <li><strong>Negociación con proveedores:</strong> Un buen manejo permite establecer relaciones estratégicas con proveedores y negociar mejores condiciones.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Métodos de control</h3>
+      <p>Para gestionar eficientemente este tipo de inventario, las empresas suelen implementar:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Sistemas de punto de reorden para determinar cuándo realizar nuevos pedidos.</li>
+      <li>Clasificación ABC para priorizar el control según el valor e importancia de cada materia prima.</li>
+      <li>Alianzas estratégicas con proveedores clave para garantizar suministro continuo.</li>
+      <li>Sistemas Just-in-Time para minimizar el capital inmovilizado sin comprometer la producción.</li>
+      </ul>
+      <p class="mt-4">El inventario de materias primas debe ser cuidadosamente balanceado: un nivel demasiado bajo puede paralizar la producción, mientras que un exceso representa capital inmovilizado y riesgos de obsolescencia o deterioro.</p>
+      `,
+                },
+                3: {
+                    title: "Inventario de productos en proceso",
+                    content: `
+      <p>El inventario de productos en proceso (IPP) está constituido por todos aquellos materiales que han iniciado su transformación pero que aún no son productos terminados. Representan un estado intermedio en la cadena de producción.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Características fundamentales</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Son bienes parcialmente terminados que se encuentran en un grado intermedio de producción.</li>
+      <li>Han recibido algún procesamiento pero requieren más trabajo antes de convertirse en productos terminados.</li>
+      <li>Su valor incluye el costo de las materias primas utilizadas, más la mano de obra directa y los costos indirectos de fabricación proporcionales al grado de avance.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Valoración y contabilización</h3>
+      <p>La valoración del inventario de productos en proceso es uno de los aspectos más complejos de la contabilidad de costos, ya que requiere:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Determinar el grado de avance o terminación de cada unidad o lote.</li>
+      <li>Asignar correctamente los costos acumulados hasta el momento.</li>
+      <li>Establecer sistemas de costeo adecuados (por órdenes, por procesos, etc.).</li>
+      <li>Realizar un seguimiento detallado del flujo de materiales y costos a través de los diferentes departamentos o centros de producción.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Importancia en la gestión operativa</h3>
+      <p>El control eficiente del inventario de productos en proceso permite:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Identificar cuellos de botella:</strong> Detectar acumulaciones excesivas en determinadas etapas del proceso productivo.</li>
+      <li><strong>Optimizar el ciclo de producción:</strong> Reducir el tiempo total desde el inicio hasta la finalización del producto.</li>
+      <li><strong>Mejorar la planificación:</strong> Proporcionar información sobre la capacidad de respuesta a nuevos pedidos.</li>
+      <li><strong>Controlar costos:</strong> Monitorear la eficiencia en el uso de recursos en cada etapa productiva.</li>
+      </ul>
+      <p class="mt-4">En sistemas de producción modernos como Lean Manufacturing o Just-in-Time, se busca minimizar el inventario de productos en proceso para reducir costos de almacenamiento, simplificar el control y disminuir el tiempo de ciclo total.</p>
+      `,
+                },
+                4: {
+                    title: "Inventario de productos terminados",
+                    content: `
+      <p>El inventario de productos terminados está constituido por todos aquellos artículos que han completado su proceso de fabricación y están listos para su venta o distribución al cliente final.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Características principales</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Son bienes que han pasado por todas las etapas del proceso productivo.</li>
+      <li>Cumplen con todas las especificaciones de calidad requeridas para su comercialización.</li>
+      <li>Están listos para ser entregados a los clientes sin necesidad de procesamiento adicional.</li>
+      <li>Su valor incluye todos los costos acumulados durante el proceso de producción (materias primas, mano de obra directa y costos indirectos de fabricación).</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Importancia estratégica</h3>
+      <p>Este tipo de inventario tiene una relevancia crítica para la empresa por diversos motivos:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Servicio al cliente:</strong> Permite atender la demanda de forma inmediata, mejorando la satisfacción del cliente.</li>
+      <li><strong>Estabilización de la producción:</strong> Ayuda a mantener niveles constantes de producción independientemente de las fluctuaciones en la demanda.</li>
+      <li><strong>Economías de escala:</strong> Posibilita la producción en lotes óptimos que minimizan los costos unitarios.</li>
+      <li><strong>Protección contra incertidumbres:</strong> Actúa como amortiguador ante variaciones imprevistas en la demanda o retrasos en la producción.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Gestión eficiente</h3>
+      <p>Para optimizar el inventario de productos terminados, las empresas implementan diversas estrategias:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Pronósticos de demanda precisos para ajustar los niveles de producción.</li>
+      <li>Sistemas de distribución eficientes para reducir los tiempos de entrega.</li>
+      <li>Políticas de inventario basadas en la rotación y rentabilidad de cada producto.</li>
+      <li>Metodologías como el análisis ABC para priorizar el control según el valor de los productos.</li>
+      <li>Tecnologías de seguimiento y trazabilidad para una gestión más precisa.</li>
+      </ul>
+      <p class="mt-4">El principal desafío en la gestión de este inventario es encontrar el equilibrio óptimo: mantener suficiente stock para satisfacer la demanda sin incurrir en costos excesivos de almacenamiento o riesgos de obsolescencia.</p>
+      `,
+                },
+                5: {
+                    title: "Inventario de mercancías",
+                    content: `
+      <p>El inventario de mercancías está compuesto por todos aquellos bienes que la empresa adquiere para revender sin someterlos a ningún proceso de transformación. Es característico de las empresas comerciales, cuya actividad principal es la compra y venta de productos.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Características distintivas</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Son productos adquiridos en su forma final, listos para ser revendidos.</li>
+      <li>No experimentan transformación física dentro de la empresa.</li>
+      <li>Su valor de inventario incluye el precio de compra más otros costos directamente atribuibles como fletes, aranceles, seguros y manipulación.</li>
+      <li>Representan uno de los activos más importantes en empresas comerciales.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Importancia económica</h3>
+      <p>Este tipo de inventario tiene un impacto significativo en la salud financiera de las empresas comerciales:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Generación de ingresos:</strong> Constituye la principal fuente de ingresos al ser el objeto directo de la actividad comercial.</li>
+      <li><strong>Capital de trabajo:</strong> Suele representar una parte sustancial del capital circulante de la empresa.</li>
+      <li><strong>Rentabilidad:</strong> Su rotación eficiente es clave para maximizar el retorno sobre la inversión.</li>
+      <li><strong>Flujo de caja:</strong> Su gestión impacta directamente en los ciclos de efectivo de la organización.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Estrategias de gestión</h3>
+      <p>Para optimizar el inventario de mercancías, las empresas comerciales implementan diversas técnicas:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Análisis de rotación:</strong> Identificación de productos de alta, media y baja rotación para ajustar los niveles de stock.</li>
+      <li><strong>Clasificación ABC:</strong> Priorización del control según el valor e importancia de cada producto.</li>
+      <li><strong>Gestión por categorías:</strong> Organización y administración de productos según familias o categorías comerciales.</li>
+      <li><strong>Sistemas de reposición automática:</strong> Establecimiento de puntos de reorden y cantidades óptimas de pedido.</li>
+      <li><strong>Negociación con proveedores:</strong> Acuerdos para entregas frecuentes en pequeñas cantidades o consignación.</li>
+      </ul>
+      <p class="mt-4">El éxito en la gestión del inventario de mercancías depende en gran medida de la capacidad para predecir la demanda, minimizar los costos de adquisición y almacenamiento, y maximizar la disponibilidad de productos para los clientes.</p>`,
+                },
+                6: {
+                    title: "Inventario de reserva",
+                    content: `
+      <p>El inventario de reserva, también conocido como inventario de seguridad o stock de seguridad, es aquel que se mantiene como protección contra diversas incertidumbres en la demanda o en el suministro. Actúa como un amortiguador para garantizar la continuidad de las operaciones ante situaciones imprevistas.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Propósito fundamental</h3>
+      <p>Este tipo de inventario se establece con varios objetivos específicos:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Proteger contra fluctuaciones inesperadas en la demanda.</li>
+      <li>Mitigar el impacto de retrasos en las entregas de los proveedores.</li>
+      <li>Compensar posibles problemas de calidad en los suministros recibidos.</li>
+      <li>Mantener la continuidad operativa durante eventos imprevistos (desastres naturales, huelgas, etc.).</li>
+      <li>Asegurar un nivel de servicio adecuado a los clientes.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Determinación del nivel óptimo</h3>
+      <p>El cálculo del inventario de reserva adecuado implica considerar diversos factores:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Variabilidad de la demanda:</strong> A mayor incertidumbre en la demanda, mayor necesidad de stock de seguridad.</li>
+      <li><strong>Tiempo de entrega de proveedores:</strong> Plazos más largos o variables requieren mayores reservas.</li>
+      <li><strong>Nivel de servicio objetivo:</strong> Porcentaje de demanda que se desea satisfacer inmediatamente.</li>
+      <li><strong>Criticidad del producto:</strong> Productos esenciales requieren mayores niveles de protección.</li>
+      <li><strong>Costos asociados:</strong> Balance entre el costo de mantener inventario y el costo de desabastecimiento.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Fórmulas y métodos de cálculo</h3>
+      <p>Existen diversas aproximaciones para determinar el inventario de reserva:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Método estadístico:</strong> SS = Z × σ × √L (donde Z es el factor de servicio, σ la desviación estándar de la demanda, y L el tiempo de entrega).</li>
+      <li><strong>Método basado en tiempo:</strong> Inventario suficiente para cubrir un período determinado (días, semanas).</li>
+      <li><strong>Método basado en experiencia:</strong> Porcentaje fijo sobre la demanda promedio durante el tiempo de reposición.</li>
+      </ul>
+      <p class="mt-4">El inventario de reserva representa un costo para la organización, pero también un seguro operativo. El desafío consiste en encontrar el equilibrio que minimice los costos totales mientras se mantiene la protección necesaria contra las incertidumbres del entorno empresarial.</p>
+      `,
+                },
+                7: {
+                    title: "Inventario de desacoplamiento",
+                    content: `
+      <p>El inventario de desacoplamiento es aquel que se mantiene deliberadamente entre diferentes etapas o procesos de producción para permitir que cada uno opere de manera independiente, sin verse afectado por las variaciones o interrupciones en otros procesos.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Función principal</h3>
+      <p>Este tipo de inventario cumple varias funciones críticas en el sistema productivo:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Permite que diferentes etapas del proceso productivo operen a ritmos distintos.</li>
+      <li>Aísla los problemas, evitando que las interrupciones en una etapa afecten inmediatamente a las demás.</li>
+      <li>Facilita la programación independiente de cada centro de trabajo o departamento.</li>
+      <li>Maximiza la utilización de recursos al reducir los tiempos de espera entre procesos.</li>
+      <li>Absorbe las variaciones en los tiempos de procesamiento entre diferentes etapas.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Aplicaciones prácticas</h3>
+      <p>El inventario de desacoplamiento es especialmente útil en diversos contextos:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Líneas de producción:</strong> Entre estaciones de trabajo con diferentes velocidades de procesamiento.</li>
+      <li><strong>Procesos secuenciales:</strong> Donde una etapa alimenta a la siguiente y existen variaciones en los tiempos.</li>
+      <li><strong>Operaciones de ensamblaje:</strong> Para garantizar la disponibilidad de componentes de diferentes fuentes.</li>
+      <li><strong>Procesos con mantenimiento programado:</strong> Permitiendo que otras áreas continúen operando durante las paradas.</li>
+      <li><strong>Sistemas con cuellos de botella:</strong> Para maximizar la utilización de los recursos limitantes.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Consideraciones estratégicas</h3>
+      <p>Al implementar inventarios de desacoplamiento, es importante considerar:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Costo-beneficio:</strong> Evaluar el costo de mantener el inventario frente a los beneficios de la independencia operativa.</li>
+      <li><strong>Espacio físico:</strong> Asegurar que exista capacidad de almacenamiento adecuada entre las etapas.</li>
+      <li><strong>Naturaleza del producto:</strong> Considerar la vida útil, tamaño y características especiales de los productos.</li>
+      <li><strong>Flexibilidad vs. eficiencia:</strong> Balancear la flexibilidad que proporciona el desacoplamiento con los principios de producción ajustada.</li>
+      </ul>
+      <p class="mt-4">En entornos de manufactura moderna, especialmente en sistemas Lean, se busca reducir los inventarios de desacoplamiento mediante la sincronización de procesos. Sin embargo, en muchos contextos industriales siguen siendo esenciales para mantener la estabilidad y eficiencia operativa.</p>
+      `,
+                },
+                8: {
+                    title: "Inventario en tránsito",
+                    content: `
+      <p>El inventario en tránsito está constituido por todos aquellos materiales, componentes o productos que han sido enviados por un proveedor pero aún no han sido recibidos por el destinatario, o que se encuentran en movimiento entre diferentes ubicaciones dentro de la organización.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Características distintivas</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Son bienes que ya han sido adquiridos legalmente (la propiedad ha sido transferida) pero no están físicamente disponibles para su uso o venta.</li>
+      <li>Representan un compromiso de capital que no está generando valor inmediato.</li>
+      <li>Su volumen está directamente relacionado con los tiempos de transporte y las distancias geográficas.</li>
+      <li>Forman parte integral de la cadena de suministro global.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Importancia en la gestión logística</h3>
+      <p>Este tipo de inventario tiene implicaciones significativas para la operación empresarial:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Capital inmovilizado:</strong> Representa inversión que no está disponible para otros usos mientras los bienes están en tránsito.</li>
+      <li><strong>Planificación de operaciones:</strong> Debe considerarse en la programación de producción y abastecimiento.</li>
+      <li><strong>Gestión de riesgos:</strong> Está expuesto a pérdidas, daños o retrasos durante el transporte.</li>
+      <li><strong>Costos financieros:</strong> Genera costos de oportunidad por el capital comprometido.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Estrategias de optimización</h3>
+      <p>Para gestionar eficientemente el inventario en tránsito, las empresas implementan diversas estrategias:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Reducción de tiempos de transporte:</strong> Selección de modos de transporte más rápidos o rutas optimizadas.</li>
+      <li><strong>Consolidación de envíos:</strong> Agrupación de pedidos para reducir frecuencia de transportes.</li>
+      <li><strong>Sistemas de seguimiento:</strong> Implementación de tecnologías de trazabilidad en tiempo real (GPS, RFID, IoT).</li>
+      <li><strong>Transferencia estratégica de propiedad:</strong> Negociación de términos comerciales que retrasen la transferencia de propiedad hasta la recepción física.</li>
+      <li><strong>Proveedores locales:</strong> Cuando sea posible, para reducir distancias y tiempos de tránsito.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Aspectos contables y financieros</h3>
+      <p>El inventario en tránsito plantea consideraciones especiales:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Debe ser correctamente registrado en los estados financieros según los términos de entrega (Incoterms).</li>
+      <li>Requiere cobertura de seguros adecuada durante el transporte.</li>
+      <li>Puede tener implicaciones fiscales y aduaneras en el comercio internacional.</li>
+      </ul>
+      <p class="mt-4">En un entorno global con cadenas de suministro cada vez más extensas, la gestión eficiente del inventario en tránsito se ha convertido en un factor crítico para la competitividad empresarial.</p>
+      `,
+                },
+                9: {
+                    title: "Inventarios cíclicos",
+                    content: `
+      <p>El inventario cíclico es un método de conteo y verificación continua donde se cuenta un grupo de artículos en intervalos regulares a lo largo del año, en lugar de realizar un único conteo físico total. Este enfoque permite mantener la precisión del inventario sin interrumpir completamente las operaciones comerciales.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Principios fundamentales</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Se basa en la clasificación de los artículos según su importancia (generalmente mediante análisis ABC).</li>
+      <li>Establece frecuencias de conteo diferentes para cada categoría de productos.</li>
+      <li>Distribuye la carga de trabajo de verificación a lo largo del año.</li>
+      <li>Permite identificar y corregir discrepancias de forma más oportuna.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Implementación metodológica</h3>
+      <p>Un sistema típico de inventario cíclico sigue estos pasos:</p>
+      <ol class="list-decimal pl-5 space-y-2">
+      <li><strong>Clasificación ABC:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Artículos A: Alto valor (70-80% del valor total), representan 10-20% de los ítems.</li>
+      <li>Artículos B: Valor medio (15-20% del valor), representan 30% de los ítems.</li>
+      <li>Artículos C: Bajo valor (5-10% del valor), representan 50-60% de los ítems.</li>
+      </ul>
+      </li>
+      <li><strong>Establecimiento de frecuencias:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Artículos A: Conteo mensual o quincenal.</li>
+      <li>Artículos B: Conteo trimestral o bimestral.</li>
+      <li>Artículos C: Conteo semestral o anual.</li>
+      </ul>
+      </li>
+      <li><strong>Programación de conteos:</strong> Distribución uniforme a lo largo del período.</li>
+      <li><strong>Ejecución del conteo:</strong> Verificación física de las existencias.</li>
+      <li><strong>Análisis de discrepancias:</strong> Identificación y corrección de diferencias.</li>
+      <li><strong>Documentación y ajustes:</strong> Registro formal de los resultados y actualización de sistemas.</li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Ventajas sobre el inventario físico total</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Menor interrupción operativa:</strong> No requiere detener completamente las actividades comerciales.</li>
+      <li><strong>Mayor precisión:</strong> La verificación frecuente reduce la acumulación de errores.</li>
+      <li><strong>Identificación oportuna de problemas:</strong> Permite detectar y corregir discrepancias rápidamente.</li>
+      <li><strong>Distribución de la carga de trabajo:</strong> Evita la concentración de esfuerzos en un único período.</li>
+      <li><strong>Mejora continua:</strong> Facilita el análisis de causas raíz de las discrepancias.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Tecnologías facilitadoras</h3>
+      <p>La implementación efectiva de inventarios cíclicos se ve potenciada por:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Sistemas de códigos de barras o RFID para agilizar el conteo.</li>
+      <li>Software especializado para programación y seguimiento de conteos.</li>
+      <li>Dispositivos móviles para registro en tiempo real.</li>
+      <li>Análisis estadístico para optimizar frecuencias y detectar patrones de error.</li>
+      </ul>
+      <p class="mt-4">El inventario cíclico representa una evolución en las prácticas de gestión de inventarios, alineada con los principios de mejora continua y optimización de recursos empresariales.</p>
+      `,
+                },
+                10: {
+                    title: "Control interno sobre los inventarios",
+                    content: `
+      <p>El control interno sobre los inventarios comprende el conjunto de políticas, procedimientos, prácticas y estructuras organizacionales diseñadas para proporcionar una seguridad razonable de que los objetivos relacionados con la salvaguarda, exactitud y eficiencia en la gestión de inventarios se están cumpliendo.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Definición y alcance</h3>
+      <p>El control interno de inventarios abarca:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Protección física de las existencias contra pérdidas, robos o deterioro.</li>
+      <li>Precisión en los registros contables y operativos relacionados con el inventario.</li>
+      <li>Eficiencia en los procesos de adquisición, almacenamiento y distribución.</li>
+      <li>Cumplimiento de normativas legales, fiscales y contables aplicables.</li>
+      <li>Generación de información confiable y oportuna para la toma de decisiones.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Importancia estratégica</h3>
+      <p>Un sistema efectivo de control interno sobre los inventarios es crucial por múltiples razones:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Protección de activos:</strong> Los inventarios suelen representar una inversión significativa y son susceptibles a pérdidas.</li>
+      <li><strong>Exactitud financiera:</strong> Impacta directamente en la fiabilidad de los estados financieros y el cálculo correcto de utilidades.</li>
+      <li><strong>Satisfacción del cliente:</strong> Asegura la disponibilidad de productos para cumplir con la demanda.</li>
+      <li><strong>Optimización de recursos:</strong> Evita excesos o insuficiencias de stock que generan costos innecesarios.</li>
+      <li><strong>Prevención de fraudes:</strong> Reduce oportunidades de apropiación indebida o manipulación.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Componentes esenciales</h3>
+      <p>Un sistema robusto de control interno sobre inventarios incluye:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li><strong>Ambiente de control:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Estructura organizativa con segregación adecuada de funciones.</li>
+      <li>Políticas claras sobre autorización y responsabilidades.</li>
+      <li>Compromiso con la integridad y valores éticos.</li>
+      </ul>
+      </li>
+      <li><strong>Evaluación de riesgos:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Identificación de vulnerabilidades específicas (obsolescencia, robo, error).</li>
+      <li>Análisis de impacto potencial y probabilidad.</li>
+      </ul>
+      </li>
+      <li><strong>Actividades de control:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Conteos físicos periódicos (totales o cíclicos).</li>
+      <li>Documentación adecuada para movimientos (recepciones, transferencias, salidas).</li>
+      <li>Acceso restringido a almacenes y sistemas de información.</li>
+      <li>Revisiones independientes y conciliaciones regulares.</li>
+      </ul>
+      </li>
+      <li><strong>Información y comunicación:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Sistemas de información integrados y actualizados.</li>
+      <li>Canales claros para reportar discrepancias o problemas.</li>
+      <li>Reportes periódicos sobre métricas clave (rotación, obsolescencia, etc.).</li>
+      </ul>
+      </li>
+      <li><strong>Monitoreo:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Evaluaciones continuas de la efectividad de los controles.</li>
+      <li>Auditorías internas o externas periódicas.</li>
+      <li>Seguimiento a indicadores de desempeño.</li>
+      </ul>
+      </li>
+      </ol>
+      <p class="mt-4">La implementación de un sistema efectivo de control interno sobre los inventarios debe adaptarse al tamaño, complejidad y naturaleza específica de cada organización, buscando siempre un equilibrio entre el nivel de control y la eficiencia operativa.</p>
+      `,
+                },
+                11: {
+                    title: "Métodos de inventario",
+                    content: `
+      <p>Los métodos de inventario son los diferentes enfoques utilizados para valorar y gestionar las existencias de una organización. Cada método tiene características particulares y genera distintos impactos en los estados financieros y en la toma de decisiones operativas.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Métodos de valoración</h3>
+      <p>Los principales métodos para valorar el inventario son:</p>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>PEPS (Primeras Entradas, Primeras Salidas) o FIFO:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Asume que los primeros artículos en entrar al inventario son los primeros en ser vendidos o utilizados.</li>
+      <li>El inventario final queda valorado a los precios de las compras más recientes.</li>
+      <li>En períodos inflacionarios, genera mayor utilidad bruta y mayor valor de inventario final.</li>
+      <li>Refleja con mayor precisión el valor actual de mercado del inventario.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>UEPS (Últimas Entradas, Primeras Salidas) o LIFO:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Asume que los últimos artículos en entrar al inventario son los primeros en ser vendidos o utilizados.</li>
+      <li>El inventario final queda valorado a los precios de las compras más antiguas.</li>
+      <li>En períodos inflacionarios, genera menor utilidad bruta y menor valor de inventario final.</li>
+      <li>No permitido en NIIF, aunque sí en algunas normativas locales como US GAAP.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Promedio Ponderado:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Calcula un costo unitario promedio dividiendo el costo total entre el número de unidades disponibles.</li>
+      <li>Este costo promedio se recalcula cada vez que ingresa nuevo inventario.</li>
+      <li>Produce resultados intermedios entre PEPS y UEPS.</li>
+      <li>Reduce el impacto de las fluctuaciones de precios en la valoración.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Identificación Específica:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Asigna a cada unidad su costo real y específico de adquisición.</li>
+      <li>Adecuado para artículos de alto valor, únicos o fácilmente identificables.</li>
+      <li>Requiere sistemas de trazabilidad detallados.</li>
+      <li>Proporciona la valoración más precisa pero puede ser complejo de implementar.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Costo Estándar:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Utiliza costos predeterminados basados en especificaciones técnicas y condiciones normales de eficiencia.</li>
+      <li>Las diferencias entre costos estándares y reales se registran como variaciones.</li>
+      <li>Facilita la planificación y el control de costos.</li>
+      <li>Requiere revisiones periódicas para mantener estándares actualizados.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Métodos de gestión física</h3>
+      <p>Además de los métodos de valoración, existen diferentes enfoques para la gestión física del inventario:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Just-in-Time (JIT):</strong> Minimiza el inventario recibiendo materiales justo cuando se necesitan en el proceso productivo.</li>
+      <li><strong>Sistema de dos contenedores:</strong> Utiliza dos recipientes para cada artículo; cuando uno se vacía, se reordena mientras se utiliza el segundo.</li>
+      <li><strong>Kanban:</strong> Sistema visual que regula el flujo de materiales mediante tarjetas o señales que indican cuándo reabastecer.</li>
+      <li><strong>Inventario administrado por el proveedor (VMI):</strong> El proveedor asume la responsabilidad de mantener niveles óptimos de inventario en las instalaciones del cliente.</li>
+      </ul>
+      <p class="mt-4">La selección del método más adecuado depende de factores como la naturaleza del negocio, el tipo de productos, el entorno económico, los requisitos normativos y los objetivos estratégicos de la organización. Muchas empresas utilizan una combinación de métodos según las características específicas de diferentes categorías de inventario.</p>
+      `,
+                },
+                12: {
+                    title: "Máximos y mínimos en inventarios",
+                    content: `
+      <p>El sistema de máximos y mínimos es una metodología de control de inventarios que establece niveles óptimos de existencias para evitar tanto el exceso como la insuficiencia de stock. Este enfoque busca responder a dos preguntas fundamentales: ¿cuánto pedir? y ¿cuándo pedir?</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Conceptos fundamentales</h3>
+      <ul class="list-disc pl-5 space-y-3">
+      <li>
+      <strong>Nivel mínimo (stock de seguridad):</strong>
+      <p class="mt-1">Es la cantidad mínima de existencias que debe mantenerse para proteger contra desabastecimiento debido a retrasos en entregas o aumentos inesperados en la demanda. Funciona como un amortiguador que reduce el riesgo de ruptura de stock.</p></li>
+      <li>
+      <strong>Punto de reorden:</strong>
+      <p class="mt-1">Es el nivel de inventario que señala la necesidad de realizar un nuevo pedido. Se calcula considerando el tiempo de entrega del proveedor y la demanda durante ese período, más el stock de seguridad.</p>
+      </li>
+      <li>
+      <strong>Nivel máximo:</strong>
+      <p class="mt-1">Representa la cantidad máxima de inventario que se debe mantener para cada artículo. Ayuda a prevenir la sobreinversión en inventarios y los problemas asociados (obsolescencia, costos de almacenamiento, capital inmovilizado).</p>
+      </li>
+      <li>
+      <strong>Cantidad económica de pedido (EOQ):</strong>
+      <p class="mt-1">Es el tamaño óptimo de pedido que minimiza los costos totales de inventario, considerando tanto los costos de mantenimiento como los de emisión de pedidos.</p>
+      </li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Fórmulas de cálculo</h3>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>Nivel mínimo (Nm):</strong>
+      <p class="mt-1">Nm = Consumo mínimo diario × Tiempo de reposición en días</p>
+      <p>O alternativamente: Nm = Demanda promedio × Tiempo de entrega × Factor de seguridad</p>
+      </li>
+      <li>
+      <strong>Punto de reorden (Pr):</strong>
+      <p class="mt-1">Pr = (Consumo promedio diario × Tiempo de reposición en días) + Nivel mínimo</p>
+      </li>
+      <li>
+      <strong>Nivel máximo (NM):</strong>
+      <p class="mt-1">NM = (Consumo máximo diario × Tiempo de reposición en días) + Nivel mínimo</p>
+      <p>O alternativamente: NM = Punto de reorden + Cantidad económica de pedido</p>
+      </li>
+      <li>
+      <strong>Cantidad a pedir (Cp):</strong>
+      <p class="mt-1">Cp = NM - Existencia actual - Cantidades pendientes de recibir</p>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Implementación práctica</h3>
+      <p>Para implementar eficazmente un sistema de máximos y mínimos, es necesario:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Analizar el comportamiento histórico de la demanda para cada artículo.</li>
+      <li>Determinar los tiempos de entrega reales de los proveedores, incluyendo su variabilidad.</li>
+      <li>Establecer el nivel de servicio deseado (probabilidad de no tener ruptura de stock).</li>
+      <li>Calcular los costos de mantenimiento de inventario y de emisión de pedidos.</li>
+      <li>Implementar sistemas de información que permitan monitorear continuamente los niveles de inventario.</li>
+      <li>Revisar periódicamente los parámetros establecidos para adaptarlos a cambios en las condiciones del mercado.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Ventajas del sistema</h3>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Automatiza las decisiones de reabastecimiento, reduciendo la carga administrativa.</li>
+      <li>Minimiza el riesgo de desabastecimiento y sus consecuencias (pérdida de ventas, interrupción de producción).</li>
+      <li>Previene la acumulación excesiva de inventario y sus costos asociados.</li>
+      <li>Optimiza el uso del capital de trabajo.</li>
+      <li>Se puede adaptar a diferentes tipos de artículos según su importancia (clasificación ABC).</li>
+      </ul>
+      <p class="mt-4">El sistema de máximos y mínimos, aunque conceptualmente simple, requiere una adecuada parametrización y actualización constante para mantener su efectividad en entornos empresariales dinámicos.</p>
+      `,
+                },
+                13: {
+                    title: "Punto de equilibrio",
+                    content: `
+      <p>El punto de equilibrio es un concepto fundamental en la gestión financiera y operativa que representa el nivel de ventas donde los ingresos totales igualan a los costos totales, resultando en un beneficio cero. Es el umbral a partir del cual una empresa comienza a generar utilidades.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Definición y fundamentos</h3>
+      <p>El análisis del punto de equilibrio se basa en la clasificación de los costos en dos categorías:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Costos fijos:</strong> Aquellos que no varían con el nivel de producción o ventas (alquiler, salarios administrativos, seguros, etc.).</li>
+      <li><strong>Costos variables:</strong> Aquellos que cambian proporcionalmente con el volumen de producción o ventas (materias primas, comisiones, energía para producción, etc.).</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Fórmulas de cálculo</h3>
+      <p>El punto de equilibrio puede expresarse en diferentes unidades:</p>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>Punto de equilibrio en unidades:</strong>
+      <div class="bg-gray-100 p-3 rounded-lg mt-1">
+      <p>PE (unidades) = Costos Fijos Totales ÷ (Precio de Venta Unitario - Costo Variable Unitario)</p>
+      <p class="mt-2">PE (unidades) = Costos Fijos Totales ÷ Margen de Contribución Unitario</p>
+      </div>
+      </li>
+      <li>
+      <strong>Punto de equilibrio en valor monetario:</strong>
+      <div class="bg-gray-100 p-3 rounded-lg mt-1">
+      <p>PE (valor) = Costos Fijos Totales ÷ (1 - (Costos Variables Totales ÷ Ventas Totales))</p>
+      <p class="mt-2">PE (valor) = Costos Fijos Totales ÷ Ratio de Margen de Contribución</p>
+      </div>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Representación gráfica</h3>
+      <p>El punto de equilibrio se visualiza frecuentemente mediante un gráfico donde:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>El eje horizontal representa el volumen de ventas (en unidades o valor).</li>
+      <li>El eje vertical representa los valores monetarios (costos e ingresos).</li>
+      <li>Una línea horizontal representa los costos fijos (constantes independientemente del volumen).</li>
+      <li>Una línea ascendente desde el origen representa los costos variables (aumentan con el volumen).</li>
+      <li>Una línea ascendente desde el origen con mayor pendiente representa los ingresos totales.</li>
+      <li>El punto donde se cruzan la línea de ingresos totales y la línea de costos totales (fijos + variables) es el punto de equilibrio.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Aplicaciones en la gestión empresarial</h3>
+      <p>El análisis del punto de equilibrio es una herramienta versátil con múltiples aplicaciones:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Planificación de beneficios:</strong> Permite determinar el volumen de ventas necesario para alcanzar un nivel específico de utilidad.</li>
+      <li><strong>Análisis de sensibilidad:</strong> Evalúa el impacto de cambios en precios, costos o volumen sobre la rentabilidad.</li>
+      <li><strong>Toma de decisiones sobre productos:</strong> Ayuda a determinar si un producto o línea de negocio es viable económicamente.</li>
+      <li><strong>Fijación de precios:</strong> Proporciona información sobre el margen disponible para establecer estrategias de precios.</li>
+      <li><strong>Gestión de costos:</strong> Identifica el impacto relativo de diferentes costos en la rentabilidad.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Limitaciones del análisis</h3>
+      <p>A pesar de su utilidad, el análisis del punto de equilibrio tiene algunas limitaciones:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Asume una relación lineal entre ingresos y costos, lo cual no siempre refleja la realidad económica.</li>
+      <li>Considera que todos los costos pueden clasificarse claramente como fijos o variables.</li>
+      <li>No contempla la variabilidad de precios según volúmenes de venta (descuentos por cantidad).</li>
+      <li>Analiza un solo producto o una mezcla constante de productos.</li>
+      <li>No considera aspectos no financieros como la satisfacción del cliente o el posicionamiento estratégico.</li>
+      </ul>
+      <p class="mt-4">A pesar de estas limitaciones, el punto de equilibrio sigue siendo una herramienta fundamental para comprender la estructura de costos de una empresa y su relación con los ingresos y la rentabilidad.</p>
+      `,
+                },
+                14: {
+                    title: "Devolución de inventarios",
+                    content: `
+      <p>La devolución de inventarios es el proceso mediante el cual se retornan mercancías a proveedores o se reciben productos devueltos por clientes. Este proceso requiere procedimientos específicos para su adecuado registro, control y gestión dentro del sistema de inventarios de la organización.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Tipos de devoluciones</h3>
+      <p>En el ámbito empresarial, existen principalmente dos tipos de devoluciones:</p>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>Devoluciones a proveedores:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Mercancía que no cumple con las especificaciones solicitadas.</li>
+      <li>Productos dañados o defectuosos recibidos del proveedor.</li>
+      <li>Entregas incorrectas (cantidades, referencias, modelos).</li>
+      <li>Mercancía recibida fuera del plazo acordado.</li>
+      <li>Productos caducados o próximos a vencer (en el caso de alimentos, medicamentos, etc.).</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Devoluciones de clientes:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Productos que no satisfacen las expectativas o necesidades del cliente.</li>
+      <li>Artículos defectuosos o que presentan fallas durante su uso.</li>
+      <li>Errores en los pedidos o entregas.</li>
+      <li>Devoluciones amparadas por políticas de garantía o satisfacción.</li>
+      <li>Cancelaciones de ventas después de la entrega.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Proceso de gestión de devoluciones</h3>
+      <p>Un proceso efectivo de gestión de devoluciones generalmente incluye las siguientes etapas:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li>
+      <strong>Recepción y autorización:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Verificación física de los productos devueltos.</li>
+      <li>Documentación de las causas de la devolución.</li>
+      <li>Autorización según políticas establecidas.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Evaluación y clasificación:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Determinación del estado de los productos (revendibles, reparables, desechables).</li>
+      <li>Clasificación según causa de devolución para análisis posteriores.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Registro contable y actualización de inventarios:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Emisión de notas de crédito (para devoluciones de clientes).</li>
+      <li>Registro de notas de débito (para devoluciones a proveedores).</li>
+      <li>Actualización de los registros de inventario.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Disposición física:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Reintegración al inventario de productos en buen estado.</li>
+      <li>Envío a reparación o reacondicionamiento.</li>
+      <li>Devolución al proveedor.</li>
+      <li>Descarte o destrucción de productos no recuperables.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Análisis y mejora continua:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Identificación de patrones o tendencias en las devoluciones.</li>
+      <li>Implementación de acciones correctivas para reducir devoluciones futuras.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Impacto contable y financiero</h3>
+      <p>Las devoluciones tienen diversas implicaciones financieras y contables:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Reducción de ingresos:</strong> Las devoluciones de clientes disminuyen los ingresos por ventas del período.</li>
+      <li><strong>Ajustes de costo de ventas:</strong> Requieren la reversión del costo asociado a los productos devueltos.</li>
+      <li><strong>Impacto en impuestos:</strong> Afectan la base imponible para impuestos sobre ventas o valor agregado.</li>
+      <li><strong>Costos adicionales:</strong> Generan gastos de transporte, manipulación, inspección y reprocesamiento.</li>
+      <li><strong>Provisiones:</strong> Pueden requerir estimaciones para devoluciones futuras basadas en experiencia histórica.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Políticas y mejores prácticas</h3>
+      <p>Para una gestión eficiente de las devoluciones, se recomiendan las siguientes prácticas:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Establecer políticas claras y documentadas sobre devoluciones, tanto para proveedores como para clientes.</li>
+      <li>Implementar sistemas de trazabilidad que faciliten el seguimiento de lotes o unidades específicas.</li>
+      <li>Capacitar al personal en la correcta inspección y manejo de productos devueltos.</li>
+      <li>Desarrollar relaciones colaborativas con proveedores para agilizar y simplificar los procesos de devolución.</li>
+      <li>Utilizar la información de devoluciones como retroalimentación para mejorar productos, procesos y servicios.</li>
+      </ul>
+      <p class="mt-4">Una gestión eficaz de las devoluciones no solo minimiza su impacto financiero negativo, sino que también puede convertirse en una oportunidad para mejorar la satisfacción del cliente y la eficiencia operativa.</p>
+      `,
+                },
+                15: {
+                    title: "Kardex",
+                    content: `
+      <p>El Kardex es un sistema de registro que controla de forma organizada las entradas, salidas y saldos de inventario. Permite conocer en cualquier momento las existencias exactas, su valoración y el movimiento histórico de cada artículo que maneja la empresa.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Definición y características</h3>
+      <p>Originalmente, el Kardex era un sistema físico de tarjetas (una por cada artículo), pero actualmente se implementa principalmente en sistemas informáticos. Sus características principales incluyen:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Registro cronológico de todos los movimientos de inventario (entradas, salidas y ajustes).</li>
+      <li>Control individualizado por artículo, identificado generalmente por código o referencia.</li>
+      <li>Seguimiento de cantidades físicas y valores monetarios.</li>
+      <li>Aplicación de métodos de valoración de inventarios (PEPS, UEPS, Promedio Ponderado, etc.).</li>
+      <li>Cálculo automático de saldos después de cada transacción.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Estructura y componentes</h3>
+      <p>Un registro de Kardex típico contiene los siguientes elementos:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li>
+      <strong>Encabezado:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Identificación del artículo (código, descripción, referencia).</li>
+      <li>Unidad de medida.</li>
+      <li>Ubicación en almacén.</li>
+      <li>Niveles máximo y mínimo establecidos.</li>
+      <li>Método de valoración utilizado.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Cuerpo o detalle:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Fecha de cada transacción.</li>
+      <li>Tipo de documento que respalda el movimiento (factura, orden de compra, nota de salida, etc.).</li>
+      <li>Concepto o descripción de la operación.</li>
+      <li>Entradas: cantidades y valores unitarios y totales.</li>
+      <li>Salidas: cantidades y valores unitarios y totales.</li>
+      <li>Saldos: cantidades y valores unitarios y totales después de cada movimiento.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Métodos de valoración en el Kardex</h3>
+      <p>El Kardex permite aplicar diferentes métodos de valoración, siendo los más comunes:</p>
+      <ul class="list-disc pl-5 space-y-3">
+      <li>
+      <strong>PEPS (Primeras Entradas, Primeras Salidas):</strong>
+      <p class="mt-1">Las salidas se valoran al costo de las primeras unidades que ingresaron. Los saldos quedan valorados a los costos más recientes.</p>
+      </li>
+      <li>
+      <strong>UEPS (Últimas Entradas, Primeras Salidas):</strong>
+      <p class="mt-1">Las salidas se valoran al costo de las últimas unidades que ingresaron. Los saldos quedan valorados a los costos más antiguos.</p>
+      </li>
+      <li>
+      <strong>Promedio Ponderado:</strong>
+      <p class="mt-1">Después de cada entrada, se calcula un nuevo costo unitario promedio dividiendo el valor total del inventario entre el número total de unidades. Este costo se utiliza para valorar las siguientes salidas hasta que ocurra una nueva entrada.</p>
+      </li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Importancia y beneficios</h3>
+      <p>El sistema Kardex proporciona múltiples ventajas para la gestión empresarial:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Control preciso:</strong> Permite conocer en todo momento las existencias exactas, evitando desabastecimientos o excesos.</li>
+      <li><strong>Valoración actualizada:</strong> Facilita la determinación del valor actual del inventario para fines contables y financieros.</li>
+      <li><strong>Trazabilidad:</strong> Proporciona un historial completo de movimientos para cada artículo.</li>
+      <li><strong>Detección de anomalías:</strong> Ayuda a identificar pérdidas, robos o errores al comparar con inventarios físicos.</li>
+      <li><strong>Toma de decisiones:</strong> Genera información valiosa sobre rotación, antigüedad y comportamiento del inventario.</li>
+      <li><strong>Cumplimiento normativo:</strong> Satisface requisitos legales y fiscales relacionados con el control de inventarios.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Evolución tecnológica</h3>
+      <p>El Kardex ha evolucionado significativamente con la tecnología:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>De tarjetas físicas a sistemas informáticos integrados (ERP).</li>
+      <li>Incorporación de códigos de barras y RFID para registro automático de movimientos.</li>
+      <li>Integración con sistemas de punto de venta para actualización en tiempo real.</li>
+      <li>Funcionalidades analíticas avanzadas para optimización de inventarios.</li>
+      <li>Acceso remoto y en dispositivos móviles para consulta y registro de movimientos.</li>
+      </ul>
+      <p class="mt-4">A pesar de los avances tecnológicos, los principios fundamentales del Kardex siguen siendo los mismos: un registro sistemático, cronológico y valorado de todos los movimientos de inventario, que constituye una herramienta esencial para la gestión eficiente de los recursos materiales de la empresa.</p>
+      `,
+                },
+                16: {
+                    title: "Inventario en empresas de servicios",
+                    content: `
+      <p>Aunque las empresas de servicios no comercializan productos físicos como actividad principal, también necesitan gestionar inventarios de suministros, materiales y otros elementos necesarios para la prestación de sus servicios. La gestión de estos inventarios tiene características particulares que la diferencian de las empresas comerciales o industriales.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Tipos de inventarios en empresas de servicios</h3>
+      <p>En el sector servicios, los inventarios suelen clasificarse en las siguientes categorías:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li>
+      <strong>Suministros operativos:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Materiales consumibles necesarios para prestar el servicio.</li>
+      <li>Ejemplos: productos de limpieza en hoteles, material médico en hospitales, papelería en consultorías.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Repuestos y mantenimiento:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Piezas y materiales para el mantenimiento de equipos e instalaciones.</li>
+      <li>Ejemplos: repuestos para equipos de diagnóstico en clínicas, piezas para sistemas de aire acondicionado en hoteles.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Activos de servicio:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Equipos y herramientas utilizados repetidamente en la prestación del servicio.</li>
+      <li>Ejemplos: instrumentos en salones de belleza, equipos audiovisuales en empresas de eventos.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Materiales complementarios:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Artículos que se entregan al cliente como parte del servicio.</li>
+      <li>Ejemplos: amenities en hoteles, material informativo en consultorías, kits de bienvenida en spas.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Inventario de capacidad:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Disponibilidad de recursos (especialmente tiempo y espacio) para prestar servicios.</li>
+      <li>Ejemplos: habitaciones disponibles en hoteles, horas de consulta en servicios profesionales, asientos en aerolíneas.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Proceso de realización de inventario</h3>
+      <p>La realización de un inventario en una empresa de servicios generalmente sigue estos pasos:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li>
+      <strong>Planificación:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Identificación de todos los elementos inventariables.</li>
+      <li>Determinación de la periodicidad del conteo (mensual, trimestral, anual).</li>
+      <li>Asignación de responsabilidades y recursos.</li>
+      <li>Establecimiento de procedimientos y documentación.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Preparación:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Organización física de los elementos a inventariar.</li>
+      <li>Preparación de herramientas de conteo (formularios, dispositivos móviles, etc.).</li>
+      <li>Capacitación del personal involucrado.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Ejecución del conteo:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Conteo físico de existencias por categorías o ubicaciones.</li>
+      <li>Registro detallado de cantidades, condiciones y ubicaciones.</li>
+      <li>Verificación de discrepancias mediante reconteos selectivos.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Valoración:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Asignación de valores monetarios a los elementos inventariados.</li>
+      <li>Aplicación de criterios de valoración consistentes (costo histórico, valor de reposición, etc.).</li>
+      <li>Cálculo de depreciación para activos de servicio cuando corresponda.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Análisis y ajustes:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Comparación con registros previos y detección de diferencias.</li>
+      <li>Investigación de discrepancias significativas.</li>
+      <li>Realización de ajustes contables necesarios.</li>
+      <li>Actualización de los sistemas de control de inventario.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Documentación y reportes:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Elaboración de informes detallados del inventario.</li>
+      <li>Documentación de hallazgos y recomendaciones.</li>
+      <li>Archivo de la información para referencias futuras y auditorías.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Consideraciones especiales</h3>
+      <p>La gestión de inventarios en empresas de servicios presenta algunas particularidades:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Perecibilidad del servicio:</strong> A diferencia de los productos, los servicios no pueden almacenarse, lo que hace que el "inventario de capacidad" sea crítico y requiera enfoques específicos.</li>
+      <li><strong>Variabilidad de la demanda:</strong> Muchos servicios experimentan fluctuaciones significativas en la demanda, lo que complica la planificación de inventarios de apoyo.</li>
+      <li><strong>Descentralización:</strong> En empresas con múltiples puntos de servicio, el control de inventarios puede requerir sistemas distribuidos pero integrados.</li>
+      <li><strong>Personalización:</strong> Los servicios altamente personalizados pueden requerir una gama más amplia de suministros para satisfacer diversas necesidades de los clientes.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Tecnologías y herramientas</h3>
+      <p>Las empresas de servicios modernas utilizan diversas herramientas para optimizar su gestión de inventarios:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Software especializado para servicios específicos (hospitalidad, salud, consultoría, etc.).</li>
+      <li>Sistemas de códigos de barras o RFID para seguimiento de activos de servicio.</li>
+      <li>Aplicaciones móviles para inventarios en tiempo real y descentralizados.</li>
+      <li>Sistemas de gestión de reservas para optimizar el "inventario de capacidad".</li>
+      <li>Análisis predictivo para anticipar necesidades de suministros basados en patrones de demanda de servicios.</li>
+      </ul>
+      <p class="mt-4">Aunque menos visible que en empresas comerciales o industriales, la gestión eficiente de inventarios en empresas de servicios es igualmente crucial para garantizar la calidad, continuidad y rentabilidad de sus operaciones.</p>
+      `,
+                },
+                17: {
+                    title: "Costear un inventario",
+                    content: `
+      <p>Costear un inventario es el proceso de asignar valor monetario a las existencias que mantiene una organización. Este proceso va más allá de registrar simplemente el precio de compra, ya que incluye todos los costos necesarios para adquirir los bienes y ponerlos en condiciones de ser utilizados o vendidos.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Componentes del costo de inventario</h3>
+      <p>Los elementos que típicamente se incluyen en el costo de inventario son:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li>
+      <strong>Precio de adquisición:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Precio facturado por el proveedor.</li>
+      <li>Menos descuentos comerciales.</li>
+      <li>Más impuestos no recuperables (aranceles, algunos impuestos específicos).</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Costos de transporte y manipulación:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Fletes y seguros de transporte.</li>
+      <li>Carga y descarga.</li>
+      <li>Costos de agentes aduaneros en importaciones.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Otros costos directamente atribuibles:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Comisiones por compras.</li>
+      <li>Costos de preparación y acondicionamiento.</li>
+      <li>Costos de diseño específico para ciertos clientes.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>En el caso de inventarios fabricados (adicionales):</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Materias primas y materiales consumidos.</li>
+      <li>Mano de obra directa.</li>
+      <li>Costos indirectos de fabricación (fijos y variables).</li>
+      <li>Depreciación de equipos utilizados en la producción.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Métodos de costeo</h3>
+      <p>Existen diferentes enfoques para asignar costos a los inventarios:</p>
+      <ul class="list-disc pl-5 space-y-3">
+      <li>
+      <strong>Costeo por absorción:</strong>
+      <p class="mt-1">Incluye todos los costos de producción, tanto fijos como variables, en el valor del inventario. Es el método aceptado por las normas contables internacionales (NIIF/IFRS) y la mayoría de las legislaciones fiscales.</p>
+      </li>
+      <li>
+      <strong>Costeo directo o variable:</strong>
+      <p class="mt-1">Solo asigna los costos variables de producción al inventario, tratando los costos fijos como gastos del período. Aunque no es aceptado para reportes financieros externos, es útil para análisis internos y toma de decisiones.</p>
+      </li>
+      <li>
+      <strong>Costeo estándar:</strong>
+      <p class="mt-1">Utiliza costos predeterminados basados en niveles normales de eficiencia y utilización de capacidad. Las diferencias entre costos estándares y reales se registran como variaciones.</p>
+      </li>
+      <li>
+      <strong>Costeo ABC (Activity-Based Costing):</strong>
+      <p class="mt-1">Asigna costos indirectos a los productos basándose en las actividades que consumen, proporcionando una visión más precisa del costo real de cada producto.</p>
+      </li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Proceso de costeo de inventarios</h3>
+      <p>El proceso típico para costear inventarios incluye los siguientes pasos:</p>
+      <ol class="list-decimal pl-5 space-y-2">
+      <li>Identificación de todos los costos relacionados con la adquisición o producción.</li>
+      <li>Determinación de qué costos son capitalizables (incluibles en el inventario) según las normas contables aplicables.</li>
+      <li>Asignación de costos compartidos entre diferentes productos o lotes cuando sea necesario.</li>
+      <li>Aplicación del método de valoración seleccionado (PEPS, UEPS, Promedio Ponderado, etc.).</li>
+      <li>Registro en el sistema de gestión de inventarios y en la contabilidad.</li>
+      <li>Evaluación periódica para detectar deterioro o obsolescencia que requiera ajustes de valor.</li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Normativa contable aplicable</h3>
+      <p>El costeo de inventarios está regulado por normas contables específicas:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Normas Internacionales:</strong> NIC 2 (Inventarios) en el marco IFRS.</li>
+      <li><strong>Normas estadounidenses:</strong> ASC 330 (Inventory) en US GAAP.</li>
+      <li><strong>Normas locales:</strong> Cada país puede tener regulaciones específicas, especialmente para fines fiscales.</li>
+      </ul>
+      <p>Estas normas establecen qué costos pueden incluirse en el inventario, qué métodos de valoración son aceptables, y cómo tratar situaciones especiales como deterioro o valoración a valor neto realizable.</p>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Desafíos comunes</h3>
+      <p>El costeo de inventarios presenta varios retos para las organizaciones:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Asignación adecuada de costos indirectos en entornos de producción compleja.</li>
+      <li>Tratamiento de costos anormales (desperdicios, tiempo improductivo) que no deben capitalizarse.</li>
+      <li>Valoración de inventarios con larga vida de almacenamiento en entornos inflacionarios.</li>
+      <li>Determinación del valor neto realizable para compararlo con el costo (principio del menor entre costo y valor neto realizable).</li>
+      <li>Sistemas de información que permitan un seguimiento preciso de todos los componentes del costo.</li>
+      </ul>
+      <p class="mt-4">Un costeo adecuado de inventarios no solo cumple con requisitos contables y fiscales, sino que proporciona información crucial para la toma de decisiones estratégicas sobre precios, márgenes, eficiencia productiva y gestión de la cadena de suministro.</p>
+      `,
+                },
+                18: {
+                    title: "Determinación del precio de venta",
+                    content: `
+      <p>La determinación del precio de venta es un proceso estratégico que considera múltiples factores como costos, competencia, valor percibido por el cliente y objetivos empresariales. Es una de las decisiones más importantes que afectan directamente a la rentabilidad y posicionamiento de mercado.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Métodos principales para determinar precios</h3>
+      <p>Existen diversos enfoques para establecer el precio de venta de un producto:</p>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>Método basado en costos:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Consiste en añadir un margen de beneficio al costo total del producto.</li>
+      <li>Fórmula: Precio de venta = Costo total unitario × (1 + % de margen deseado)</li>
+      <li>Ventajas: Simple de aplicar, garantiza la cobertura de costos.</li>
+      <li>Limitaciones: No considera la demanda ni la competencia.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Método basado en la competencia:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Establece precios en relación con los competidores.</li>
+      <li>Puede ser igual, superior o inferior según el posicionamiento buscado.</li>
+      <li>Ventajas: Considera la realidad del mercado.</li>
+      <li>Limitaciones: Puede ignorar la estructura de costos propia.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Método basado en el valor percibido:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Se basa en cuánto valoran los clientes el producto o servicio.</li>
+      <li>Requiere investigación de mercado para determinar la disposición a pagar.</li>
+      <li>Ventajas: Maximiza el potencial de ingresos según la percepción del cliente.</li>
+      <li>Limitaciones: Difícil de cuantificar objetivamente.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Ejemplos prácticos de determinación de precios</h3>
+      <p>A continuación, se presentan tres ejemplos que ilustran diferentes métodos:</p>
+      <div class="bg-gray-100 p-4 rounded-lg mt-2 mb-4">
+      <h4 class="font-semibold mb-2">Ejemplo 1: Método basado en costos (Mueble de madera)</h4>
+      <ul class="list-disc pl-5 space-y-1">
+      <li>Costo de materiales (madera, herrajes, acabados): $1,200</li>
+      <li>Mano de obra directa: $800</li>
+      <li>Costos indirectos asignados: $400</li>
+      <li>Costo total unitario: $2,400</li>
+      <li>Margen de beneficio deseado: 40%</li>
+      <li><strong>Cálculo:</strong> $2,400 × (1 + 0.40) = $3,360</li>
+      <li><strong>Precio de venta final:</strong> $3,399 (ajustado por psicología de precios)</li>
+      </ul>
+      </div>
+      <div class="bg-gray-100 p-4 rounded-lg mb-4">
+      <h4 class="font-semibold mb-2">Ejemplo 2: Método mixto (Servicio de consultoría)</h4>
+      <ul class="list-disc pl-5 space-y-1">
+      <li>Costo por hora del consultor (salario, beneficios, gastos): $120</li>
+      <li>Horas estimadas para el proyecto: 40 horas</li>
+      <li>Costo base: $4,800</li>
+      <li>Análisis de competencia: servicios similares entre $6,000 y $8,000</li>
+      <li>Valor añadido diferencial (experiencia especializada): 20% sobre competencia media</li>
+      <li><strong>Cálculo:</strong> Media de competencia $7,000 × 1.20 = $8,400</li>
+      <li>Verificación de margen: ($8,400 - $4,800) ÷ $8,400 = 42.9% (aceptable)</li>
+      <li><strong>Precio de venta final:</strong> $8,500</li>
+      </ul>
+      </div>
+      <div class="bg-gray-100 p-4 rounded-lg mb-4">
+      <h4 class="font-semibold mb-2">Ejemplo 3: Método basado en valor percibido (Software especializado)</h4>
+      <ul class="list-disc pl-5 space-y-1">
+      <li>Costo de desarrollo amortizado por unidad: $300</li>
+      <li>Costos de marketing y distribución por unidad: $100</li>
+      <li>Costo total unitario: $400</li>
+      <li>Investigación de mercado: el software ahorra aproximadamente $5,000 anuales a los usuarios</li>
+      <li>Valor percibido: 30% del ahorro anual</li>
+      <li><strong>Cálculo:</strong> $5,000 × 0.30 = $1,500</li>
+      <li>Margen resultante: ($1,500 - $400) ÷ $1,500 = 73.3%</li>
+      <li><strong>Precio de venta final:</strong> $1,499 (ajustado por psicología de precios)</li>
+      </ul>
+      </div>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Factores adicionales a considerar</h3>
+      <p>Además de los métodos básicos, varios factores influyen en la determinación final del precio:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Ciclo de vida del producto:</strong> Los productos nuevos pueden utilizar estrategias de precio de descremado (alto) o penetración (bajo).</li>
+      <li><strong>Elasticidad de la demanda:</strong> Sensibilidad de los clientes ante cambios en el precio.</li>
+      <li><strong>Objetivos empresariales:</strong> Maximización de beneficios, aumento de cuota de mercado, supervivencia, etc.</li>
+      <li><strong>Canales de distribución:</strong> Cada intermediario requiere su margen, afectando el precio final.</li>
+      <li><strong>Factores psicológicos:</strong> Precios de referencia, precios terminados en 9 o 5, precios pares vs. impares.</li>
+      <li><strong>Restricciones legales:</strong> Regulaciones antimonopolio, control de precios en ciertos sectores.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Estrategias de precios avanzadas</h3>
+      <p>Las empresas modernas implementan estrategias sofisticadas como:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Precios dinámicos:</strong> Ajustes en tiempo real según demanda, inventario o comportamiento del cliente.</li>
+      <li><strong>Bundling:</strong> Agrupar productos o servicios a un precio conjunto menor que la suma individual.</li>
+      <li><strong>Precios por segmentos:</strong> Diferentes precios para distintos segmentos de mercado (estudiantes, profesionales, empresas).</li>
+      <li><strong>Suscripciones:</strong> Ingresos recurrentes a cambio de acceso continuo al producto o servicio.</li>
+      <li><strong>Freemium:</strong> Versión básica gratuita con opciones premium de pago.</li>
+      </ul>
+      <p class="mt-4">La determinación del precio de venta es tanto ciencia como arte, requiriendo un equilibrio entre análisis cuantitativo y comprensión cualitativa del mercado. Un precio óptimo debe ser rentable para la empresa, aceptable para el cliente y sostenible frente a la competencia.</p>
+      `,
+                },
+                19: {
+                    title: "Qué no se debe inventariar",
+                    content: `
+      <p>Aunque la gestión de inventarios es fundamental para el control de activos y recursos empresariales, no todos los elementos deben ser incluidos en el inventario. Existen ciertos bienes, materiales y recursos que, por su naturaleza, valor o características específicas, no deben formar parte del inventario contable o físico de una organización.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Elementos que no deben incluirse en el inventario</h3>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>Activos fijos:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Maquinaria, equipos, vehículos, mobiliario y edificios no destinados a la venta.</li>
+      <li>Estos elementos deben registrarse como activos fijos o propiedad, planta y equipo, no como inventario.</li>
+      <li>Se controlan mediante registros de activos fijos y están sujetos a depreciación.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Materiales de oficina de bajo valor:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Artículos como bolígrafos, clips, grapas, post-its y otros suministros menores.</li>
+      <li>Por su bajo costo unitario y alta rotación, suelen contabilizarse como gasto cuando se adquieren.</li>
+      <li>El costo administrativo de inventariarlos superaría el beneficio del control.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Productos obsoletos o deteriorados:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Artículos que han perdido su valor comercial por obsolescencia tecnológica.</li>
+      <li>Productos dañados que no pueden venderse ni recuperarse.</li>
+      <li>Estos deben darse de baja del inventario y reconocerse como pérdida.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Bienes en consignación de terceros:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Productos que la empresa tiene físicamente pero que pertenecen legalmente a otros.</li>
+      <li>No forman parte del inventario contable, aunque deben controlarse en registros auxiliares.</li>
+      <li>El propietario legal es quien debe incluirlos en su inventario.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Servicios y recursos intangibles:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Horas de consultoría, derechos de uso, licencias de software no comercializables.</li>
+      <li>Por su naturaleza intangible, no pueden formar parte del inventario físico.</li>
+      <li>Se controlan mediante otros mecanismos como contratos o sistemas de gestión de recursos.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Envases y embalajes retornables:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Contenedores, pallets o envases reutilizables que se espera sean devueltos.</li>
+      <li>Suelen registrarse como activos fijos o en cuentas específicas, no como inventario para la venta.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Muestras y material promocional:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Productos destinados a promoción, demostración o regalo.</li>
+      <li>Generalmente se contabilizan como gastos de marketing o ventas.</li>
+      <li>Aunque pueden controlarse físicamente, no forman parte del inventario valorado.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Desperdicios y subproductos sin valor comercial:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Residuos del proceso productivo que no tienen valor de recuperación.</li>
+      <li>Material sobrante que no puede reutilizarse ni venderse.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Bienes totalmente depreciados en uso:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Equipos o herramientas que contablemente tienen valor cero pero siguen en uso.</li>
+      <li>Estos deben controlarse en registros de activos fijos, no como inventario.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Gastos pagados por anticipado:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Seguros, alquileres o suscripciones pagados por adelantado.</li>
+      <li>Aunque representan derechos futuros, no son elementos físicos inventariables.</li>
+      <li>Se registran como activos diferidos o gastos anticipados.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Criterios para determinar qué no inventariar</h3>
+      <p>Para decidir si un elemento debe excluirse del inventario, pueden aplicarse estos criterios:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Materialidad:</strong> Elementos de valor tan bajo que su control individualizado no es costo-efectivo.</li>
+      <li><strong>Naturaleza del bien:</strong> Si no está destinado a la venta o al proceso productivo como insumo.</li>
+      <li><strong>Propiedad legal:</strong> Si la empresa no tiene la propiedad del bien, aunque lo posea físicamente.</li>
+      <li><strong>Vida útil:</strong> Bienes con vida útil prolongada que deben tratarse como activos fijos.</li>
+      <li><strong>Valor comercial:</strong> Elementos que han perdido su valor de mercado o utilidad.</li>
+      </ul>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Implicaciones contables y fiscales</h3>
+      <p>La correcta clasificación de qué incluir o no en el inventario tiene importantes consecuencias:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li>Impacto en los estados financieros, especialmente en el activo circulante y el costo de ventas.</li>
+      <li>Efectos fiscales en la determinación de la base imponible para diversos impuestos.</li>
+      <li>Implicaciones en indicadores financieros como la rotación de inventarios y el capital de trabajo.</li>
+      <li>Posibles contingencias en auditorías fiscales o financieras si la clasificación es incorrecta.</li>
+      </ul>
+      <p class="mt-4">La decisión sobre qué no inventariar debe basarse en principios contables, normativas fiscales aplicables y políticas internas de la organización, buscando siempre un equilibrio entre el control adecuado y la eficiencia administrativa.</p>
+      `,
+                },
+                20: {
+                    title: "Merma en el sistema de inventarios",
+                    content: `
+      <p>La merma en el sistema de inventarios se refiere a la pérdida o reducción de mercancías que produce una diferencia entre el inventario contable (teórico) y el inventario físico (real). Estas diferencias representan un costo significativo para las empresas y requieren una gestión adecuada para su control y minimización.</p>
+      <h3 class="text-xl font-semibold mt-4 mb-2">Tipos de mermas</h3>
+      <p>Las mermas pueden clasificarse según su origen y naturaleza:</p>
+      <ol class="list-decimal pl-5 space-y-4">
+      <li>
+      <strong>Mermas operativas o naturales:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li><strong>Evaporación:</strong> Pérdida de líquidos por evaporación (combustibles, perfumes, etc.).</li>
+      <li><strong>Deshidratación:</strong> Pérdida de agua en productos frescos (frutas, verduras, carnes).</li>
+      <li><strong>Descomposición:</strong> Deterioro natural de productos perecederos.</li>
+      <li><strong>Roturas accidentales:</strong> Daños durante la manipulación normal.</li>
+      <li><strong>Residuos y desperdicios:</strong> Material sobrante en procesos productivos.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Mermas administrativas:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li><strong>Errores de registro:</strong> Equivocaciones en la documentación de entradas o salidas.</li>
+      <li><strong>Errores de conteo:</strong> Imprecisiones durante inventarios físicos.</li>
+      <li><strong>Fallas en sistemas:</strong> Problemas técnicos en los sistemas de control de inventario.</li>
+      <li><strong>Errores de transferencia:</strong> Movimientos entre ubicaciones mal documentados.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Mermas por robo o fraude:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li><strong>Hurto externo:</strong> Robos cometidos por clientes o personas ajenas a la empresa.</li>
+      <li><strong>Hurto interno:</strong> Apropiación indebida por parte de empleados.</li>
+      <li><strong>Colusión:</strong> Fraudes organizados entre empleados y externos.</li>
+      <li><strong>Manipulación de registros:</strong> Alteración intencional de documentos para ocultar faltantes.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Mermas comerciales:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li><strong>Descuentos no registrados:</strong> Rebajas otorgadas sin documentación adecuada.</li>
+      <li><strong>Muestras y degustaciones:</strong> Productos utilizados para promoción sin registro.</li>
+      <li><strong>Consumo interno:</strong> Uso de productos para necesidades internas sin control.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Impacto económico de las mermas</h3>
+      <p>Las mermas afectan a las organizaciones en múltiples dimensiones:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Financiero:</strong> Reducción directa de utilidades al representar costos no recuperables.</li>
+      <li><strong>Operativo:</strong> Distorsiones en la planificación de compras y producción por datos inexactos.</li>
+      <li><strong>Comercial:</strong> Potenciales ventas perdidas por falta de stock disponible.</li>
+      <li><strong>Fiscal:</strong> Implicaciones en la determinación de impuestos según el tratamiento permitido.</li>
+      </ul>
+      <p>Según estudios del sector retail, las mermas pueden representar entre el 1% y el 3% de las ventas totales, llegando en algunos casos hasta el 5% en sectores específicos.</p>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Gestión y control de mermas</h3>
+      <p>Un enfoque integral para la gestión de mermas incluye:</p>
+      <ol class="list-decimal pl-5 space-y-3">
+      <li>
+      <strong>Identificación y medición:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Inventarios físicos periódicos (totales y cíclicos).</li>
+      <li>Análisis de discrepancias por categorías, ubicaciones y períodos.</li>
+      <li>Establecimiento de indicadores clave (KPIs) para seguimiento.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Prevención de mermas operativas:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Mejora de condiciones de almacenamiento (temperatura, humedad, etc.).</li>
+      <li>Capacitación en manipulación adecuada de productos.</li>
+      <li>Optimización de la rotación de inventarios (PEPS).</li>
+      <li>Mejora de embalajes y protección durante transporte.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Control de mermas administrativas:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Implementación de sistemas automatizados (códigos de barras, RFID).</li>
+      <li>Procedimientos claros para recepción, almacenamiento y despacho.</li>
+      <li>Capacitación del personal en procesos y sistemas.</li>
+      <li>Auditorías internas periódicas de procesos.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Prevención de robos y fraudes:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Sistemas de vigilancia y seguridad (cámaras, alarmas, etiquetas).</li>
+      <li>Control de accesos a áreas de almacenamiento.</li>
+      <li>Segregación de funciones en procesos críticos.</li>
+      <li>Políticas de revisión aleatoria de bolsos y pertenencias.</li>
+      </ul>
+      </li>
+      <li>
+      <strong>Gestión de mermas comerciales:</strong>
+      <ul class="list-disc pl-5 mt-1">
+      <li>Procedimientos formales para autorización y registro de descuentos.</li>
+      <li>Control específico de muestras y material promocional.</li>
+      <li>Políticas claras sobre consumo interno.</li>
+      </ul>
+      </li>
+      </ol>
+      <h3 class="text-xl font-semibold mt-6 mb-2">Tratamiento contable y fiscal</h3>
+      <p>El manejo contable y fiscal de las mermas varía según la normativa aplicable:</p>
+      <ul class="list-disc pl-5 space-y-2">
+      <li><strong>Mermas normales:</strong> Generalmente deducibles fiscalmente por considerarse inherentes al proceso productivo o comercial.</li>
+      <li><strong>Mermas anormales:</strong> En muchas jurisdicciones requieren documentación especial para su deducibilidad (actas, peritajes, etc.).</li>
+      <li><strong>Registro contable:</strong> Puede realizarse como parte del costo de ventas o como gastos operativos según su naturaleza.</li>
+      <li><strong>Provisiones:</strong> En algunos casos se establecen estimaciones basadas en experiencia histórica.</li>
+      </ul>
+      <p class="mt-4">La gestión efectiva de mermas requiere un enfoque multidisciplinario que combine aspectos operativos, administrativos, tecnológicos y de control interno. Las empresas más exitosas en este ámbito no solo se enfocan en detectar las mermas, sino principalmente en prevenirlas mediante la optimización de procesos y la creación de una cultura organizacional consciente de su impacto.</p>
+      `,
+                },
+            };
+            // Open modal with question content
+            const questionButtons = document.querySelectorAll("[data-question]");
+            questionButtons.forEach((button) => {
+                button.addEventListener("click", function () {
+                    const questionId = this.getAttribute("data-question");
+                    if (questionData[questionId]) {
+                        modalTitle.textContent = questionData[questionId].title;
+                        modalContent.innerHTML = questionData[questionId].content;
+                        modal.classList.remove("hidden");
+                        document.body.style.overflow = "hidden";
+                    }
+                });
+            });
+            // Close modal
+            closeModal.addEventListener("click", function () {
+                modal.classList.add("hidden");
+                document.body.style.overflow = "auto";
+            });
+            // Close modal when clicking outside
+            modal.addEventListener("click", function (e) {
+                if (e.target === modal) {
+                    modal.classList.add("hidden");
+                    document.body.style.overflow = "auto";
+                }
+            });
+            // Search functionality
+            const searchInput = document.querySelector(".search-input");
+            const searchButton = searchInput.nextElementSibling;
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                if (searchTerm.length < 2) {
+                    const searchNotification = document.createElement("div");
+                    searchNotification.className =
+                        "fixed top-20 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-lg shadow-lg z-50 text-gray-700";
+                    searchNotification.textContent =
+                        "Por favor ingrese al menos 2 caracteres para buscar";
+                    document.body.appendChild(searchNotification);
+                    setTimeout(() => searchNotification.remove(), 3000);
+                    return;
+                }
+                const questionCards = document.querySelectorAll(".card-hover");
+                let foundCount = 0;
+                let firstFound = null;
+                // Reset all cards first
+                questionCards.forEach((card) => {
+                    card.style.opacity = "1";
+                    card.style.border = "none";
+                    card.classList.remove("search-highlight");
+                });
+                questionCards.forEach((card) => {
+                    const cardTitle = card.querySelector("h3").textContent.toLowerCase();
+                    const cardContent = card.querySelector("p").textContent.toLowerCase();
+                    if (cardTitle.includes(searchTerm) || cardContent.includes(searchTerm)) {
+                        card.style.opacity = "1";
+                        card.style.border = "2px solid #1A237E";
+                        card.classList.add("search-highlight");
+                        foundCount++;
+                        if (!firstFound) firstFound = card;
+                    } else {
+                        card.style.opacity = "0.3";
+                    }
+                });
+                if (foundCount > 0) {
+                    const searchNotification = document.createElement("div");
+                    searchNotification.className =
+                        "fixed top-20 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-lg shadow-lg z-50 text-gray-700";
+                    searchNotification.textContent = `Se encontraron ${foundCount} resultados`;
+                    document.body.appendChild(searchNotification);
+                    setTimeout(() => searchNotification.remove(), 3000);
+                    if (firstFound) {
+                        firstFound.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                } else {
+                    const searchNotification = document.createElement("div");
+                    searchNotification.className =
+                        "fixed top-20 left-1/2 transform -translate-x-1/2 bg-white px-6 py-3 rounded-lg shadow-lg z-50 text-gray-700";
+                    searchNotification.textContent = "No se encontraron resultados";
+                    document.body.appendChild(searchNotification);
+                    setTimeout(() => searchNotification.remove(), 3000);
+                    // Reset all cards if no results found
+                    questionCards.forEach((card) => {
+                        card.style.opacity = "1";
+                        card.style.border = "none";
+                        card.classList.remove("search-highlight");
+                    });
+                }
+            }
+            // Add event listeners for both Enter key and button click
+            searchInput.addEventListener("keyup", function (e) {
+                if (e.key === "Enter") {
+                    performSearch();
+                }
+            });
+            searchButton.addEventListener("click", performSearch);
+            // Add event listener to clear search when input is cleared
+            searchInput.addEventListener("input", function () {
+                if (this.value === "") {
+                    const questionCards = document.querySelectorAll(".card-hover");
+                    questionCards.forEach((card) => {
+                        card.style.opacity = "1";
+                        card.style.border = "none";
+                        card.classList.remove("search-highlight");
+                    });
+                }
+            });
+            // Add styles for search highlight animation
+            const style = document.createElement("style");
+            style.textContent = `
+      .search-highlight {
+      animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+      0% {
+      box-shadow: 0 0 0 0 rgba(26, 35, 126, 0.4);
+      }
+      70% {
+      box-shadow: 0 0 0 10px rgba(26, 35, 126, 0);
+      }
+      100% {
+      box-shadow: 0 0 0 0 rgba(26, 35, 126, 0);
+      }
+      }
+      `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+
+</html>
